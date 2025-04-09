@@ -2,23 +2,25 @@ package br.com.food_rescue_api.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import org.springframework.web.server.ResponseStatusException;
 
 import br.com.food_rescue_api.model.User;
 
 @RestController
 @RequestMapping("/users")
+@CrossOrigin(origins = "*") 
 public class UserController {
 
     private Logger log = LoggerFactory.getLogger(getClass());
     private List<User> repository = new ArrayList<>();
+    private AtomicLong counter = new AtomicLong();
 
     @GetMapping
     public List<User> index() {
@@ -27,7 +29,8 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<User> create(@RequestBody User user) {
-        log.info("Cadastrando usuário: " + user.getName());
+        user.setId(counter.incrementAndGet());
+        log.info("Cadastrando usuário: " + user);
         repository.add(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(user);
     }
@@ -61,7 +64,6 @@ public class UserController {
                 .stream()
                 .filter(u -> u.getId().equals(id))
                 .findFirst()
-                .orElseThrow(
-                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
     }
 }
